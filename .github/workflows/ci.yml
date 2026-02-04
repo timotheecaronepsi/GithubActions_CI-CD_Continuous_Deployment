@@ -20,31 +20,37 @@ on:
 permissions:
   contents: write
 
-.common-node-setup: &common-node-setup
-  - uses: actions/checkout@v4
-  - name: Setup Node
-    uses: actions/setup-node@v4
-    with:
-      node-version: 20
-      cache: npm
-  - name: Install dependencies
-    run: npm ci
+# -------------- ANCHORS (réutilisables) --------------
 
-# Condition : ne pas exécuter sur tags ou commit de release
-.if-not-tag-or-release: &if-not-tag-or-release >
+# Steps réutilisables (1 ancre = 1 step)
+step-checkout: &step-checkout
+  uses: actions/checkout@v4
+
+step-checkout-full: &step-checkout-full
+  uses: actions/checkout@v4
+  with:
+    fetch-depth: 0
+
+step-setup-node: &step-setup-node
+  name: Setup Node
+  uses: actions/setup-node@v4
+  with:
+    node-version: 20
+    cache: npm
+
+step-install: &step-install
+  name: Install dependencies
+  run: npm ci
+
+# Conditions réutilisables
+if-not-tag-or-release: &if-not-tag-or-release >
   !startsWith(github.ref, 'refs/tags/') &&
   !contains(github.event.head_commit.message || '', 'chore: release')
 
-# Condition : job uniquement sur Pull Requests
-.if-pr-only: &if-pr-only >
+if-pr-only: &if-pr-only >
   github.event_name == 'pull_request'
 
-# Checkout complet (pour gitleaks)
-.checkout-full: &checkout-full
-  - uses: actions/checkout@v4
-    with:
-      fetch-depth: 0
-
+# ----------------------- JOBS ------------------------
 
 jobs:
 
@@ -53,7 +59,9 @@ jobs:
     runs-on: ubuntu-latest
     if: *if-not-tag-or-release
     steps:
-      - *common-node-setup
+      - *step-checkout
+      - *step-setup-node
+      - *step-install
       - name: Lint code with ESLint
         run: npm run lint
 
@@ -63,7 +71,9 @@ jobs:
     needs: validate
     if: *if-not-tag-or-release
     steps:
-      - *common-node-setup
+      - *step-checkout
+      - *step-setup-node
+      - *step-install
       - name: Run tests
         run: npm test
 
@@ -89,7 +99,9 @@ jobs:
     runs-on: ubuntu-latest
     needs: test
     steps:
-      - *common-node-setup
+      - *step-checkout
+      - *step-setup-node
+      - *step-install
       - name: Build project
         run: npm run build || echo "No build script"
 
@@ -99,18 +111,10 @@ jobs:
     needs: build
     if: github.ref == 'refs/heads/main'
     steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
+      - *step-checkout-full
 
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: npm
-
-      - name: Install dependencies
-        run: npm ci
+      - *step-setup-node
+      - *step-install
 
       - name: Set Git identity
         run: |
@@ -149,7 +153,7 @@ jobs:
     if: *if-pr-only
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - *step-checkout
       - uses: actions/dependency-review-action@v4
 
   # --- SECURITY: CODEQL ---
@@ -159,7 +163,7 @@ jobs:
       contents: read
       security-events: write
     steps:
-      - uses: actions/checkout@v4
+      - *step-checkout
 
       - uses: github/codeql-action/init@v3
         with:

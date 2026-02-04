@@ -1,29 +1,28 @@
 import globals from "globals";
-import globals from "globals";
 import pluginJs from "@eslint/js";
 
 export default [
   {
-    ignores: ["**/*.test.js"],         
-    files: ["**/*.js"],           
+    ignores: ["**/*.test.js"],      
+    files: ["**/*.js"],         
     languageOptions: { 
-      sourceType: "commonjs"        
+      sourceType: "commonjs"     
     },
   },
 
   {
     languageOptions: { 
-      globals: globals.node          
+      globals: globals.node    
     },
   },
 
-  pluginJs.configs.recommended,
+  pluginJs.configs.recommended, 
 
   {
     rules: {
       "no-unused-vars": "error",
       "no-undef": "error",
-      "no-console": "error",            
+      "no-console": "error",
     },
   },
 ];

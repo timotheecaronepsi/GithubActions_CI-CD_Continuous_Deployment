@@ -84,6 +84,11 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Set Git identity
+              run: |
+                git config --global user.email "github-actions[bot]@users.noreply.github.com"
+                git config --global user.name "github-actions[bot]"
+
       - name: Run Release-it
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 

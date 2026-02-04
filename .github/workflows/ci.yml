@@ -1,6 +1,5 @@
 name: CI Pipeline Equivalent GitLab
 
-
 on:
   push:
     branches: ["main"]
@@ -21,78 +20,76 @@ on:
 permissions:
   contents: write
 
+.common-node-setup: &common-node-setup
+  - uses: actions/checkout@v4
+  - name: Setup Node
+    uses: actions/setup-node@v4
+    with:
+      node-version: 20
+      cache: npm
+  - name: Install dependencies
+    run: npm ci
+
+# Condition : ne pas exécuter sur tags ou commit de release
+.if-not-tag-or-release: &if-not-tag-or-release >
+  !startsWith(github.ref, 'refs/tags/') &&
+  !contains(github.event.head_commit.message || '', 'chore: release')
+
+# Condition : job uniquement sur Pull Requests
+.if-pr-only: &if-pr-only >
+  github.event_name == 'pull_request'
+
+# Checkout complet (pour gitleaks)
+.checkout-full: &checkout-full
+  - uses: actions/checkout@v4
+    with:
+      fetch-depth: 0
+
+
 jobs:
 
   # --- VALIDATE ---
   validate:
     runs-on: ubuntu-latest
-    if: |
-      !startsWith(github.ref, 'refs/tags/')
-      && !contains(github.event.head_commit.message || '', 'chore: release')
+    if: *if-not-tag-or-release
     steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: npm
-
-      - name: Install dependencies
-        run: npm ci
-
+      - *common-node-setup
       - name: Lint code with ESLint
         run: npm run lint
 
-  # --- TEST ---
+  # --- UNIT TEST ---
   test:
     runs-on: ubuntu-latest
     needs: validate
-    if: |
-      !startsWith(github.ref, 'refs/tags/')
-      && !contains(github.event.head_commit.message || '', 'chore: release')
+    if: *if-not-tag-or-release
     steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: npm
-
-      - name: Install dependencies
-        run: npm ci
-
+      - *common-node-setup
       - name: Run tests
         run: npm test
 
+  # --- INTEGRATION TEST ---
+  integration-test:
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - name: Run Integration Tests
+        run: echo "Hello Integration !"
 
-  # --- E2E TEST (visible seulement en PR) ---
+  # --- E2E TEST (seulement en PR) ---
   e2e-test:
     runs-on: ubuntu-latest
     needs: integration-test
-    if: github.event_name == 'pull_request'
+    if: *if-pr-only
     steps:
       - name: Run E2E test
         run: echo "Hello E2E !"
-
 
   # --- BUILD ---
   build:
     runs-on: ubuntu-latest
     needs: test
     steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: npm
-
-      - name: Install dependencies
-        run: npm ci
-
+      - *common-node-setup
       - name: Build project
         run: npm run build || echo "No build script"
 
@@ -137,26 +134,25 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-# --- SECURITY SCANS ---
+  # --- SECURITY: GITLEAKS ---
   gitleaks:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
+      - *step-checkout-full
       - name: Run Gitleaks
         uses: gitleaks/gitleaks-action@v2
         with:
           args: detect --no-git --redact --verbose
 
+  # --- SECURITY: DEPENDENCY REVIEW ---
   dependency-review:
-    if: github.event_name == 'pull_request'
+    if: *if-pr-only
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/dependency-review-action@v4
 
+  # --- SECURITY: CODEQL ---
   codeql:
     runs-on: ubuntu-latest
     permissions:
@@ -176,20 +172,12 @@ jobs:
 
       - uses: github/codeql-action/analyze@v3
 
-# --- ONLY-CANARY ---
+  # --- ONLY-CANARY ---
   only-canary:
-      runs-on: ubuntu-latest
-      if: |
-        (github.event_name == 'workflow_dispatch' && inputs.env_target == 'canary')
-        || (github.event_name != 'workflow_dispatch' && vars.ENV_TARGET == 'canary')
-      steps:
-        - name: Run Only Canary
-          run: echo "Hello Only Canary !"
-
-# --- INTEGRATION-TEST ---
-  integration-test:
     runs-on: ubuntu-latest
-    needs: test
+    if: |
+      (github.event_name == 'workflow_dispatch' && inputs.env_target == 'canary')
+      || (github.event_name != 'workflow_dispatch' && vars.ENV_TARGET == 'canary')
     steps:
-      - name: Run Integration Tests
-        run: echo "Hello Integration !"
+      - name: Run Only Canary
+        run: echo "Hello Only Canary !"

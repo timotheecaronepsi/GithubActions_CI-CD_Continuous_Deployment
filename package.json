@@ -24,13 +24,16 @@
   },
   "release-it": {
     "$schema": "https://unpkg.com/release-it/schema/release-it.json",
-  "git": {
-    "tagName": "v${version}",
-    "commitMessage": "chore: release v${version}",
-    "requireCleanWorkingDir": true
-  },
+    "git": {
+      "tagName": "v${version}",
+      "commitMessage": "chore: release v${version}",
+      "requireCleanWorkingDir": true
+    },
     "github": {
-      "release": true
+      "release": true,
+      "tokenRef": "GITHUB_TOKEN",
+      "repo": "timotheecaronepsi/GithubActions_CI-CD_Continuous_Deployment",
+      "autoGenerate": true
     }
   }
 }

@@ -1,7 +1,7 @@
 {
   "name": "ci-cd",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.0.1",
   "main": "src/index.js",
   "scripts": {
     "start": "node src/index.js",
@@ -24,11 +24,11 @@
   },
   "release-it": {
     "$schema": "https://unpkg.com/release-it/schema/release-it.json",
-  "git": {
-    "tagName": "v${version}",
-    "commitMessage": "chore: release v${version}",
-    "requireCleanWorkingDir": true
-  },
+    "git": {
+      "tagName": "v${version}",
+      "commitMessage": "chore: release v${version}",
+      "requireCleanWorkingDir": true
+    },
     "github": {
       "release": true
     }

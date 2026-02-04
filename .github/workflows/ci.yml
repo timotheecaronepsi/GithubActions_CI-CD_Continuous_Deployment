@@ -23,8 +23,8 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Validate code (placeholder)
-        run: echo "Validation OK"
+      - name: Lint code with ESLint
+        run: npx eslint .
 
   # --- TEST ---
   test:

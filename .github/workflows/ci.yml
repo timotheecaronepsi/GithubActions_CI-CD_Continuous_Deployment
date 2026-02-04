@@ -62,7 +62,7 @@ jobs:
     if: github.event_name == 'pull_request'
     steps:
       - name: Run E2E test
-        run: echo "Hello E2E !"
+        run: echo "Hello E2E !!!"
 
 
   # --- BUILD ---

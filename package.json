@@ -27,13 +27,11 @@
     "git": {
       "tagName": "v${version}",
       "commitMessage": "chore: release v${version}",
-      "requireCleanWorkingDir": true
+      "requireCleanWorkingDir": true,
+      "push": true
     },
     "github": {
-      "release": true,
-      "tokenRef": "GITHUB_TOKEN",
-      "repo": "timotheecaronepsi/GithubActions_CI-CD_Continuous_Deployment",
-      "autoGenerate": true
+      "release": false
     }
   }
 }

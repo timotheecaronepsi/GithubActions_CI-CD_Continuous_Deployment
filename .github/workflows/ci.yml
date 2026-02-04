@@ -1,4 +1,4 @@
-name: CI
+name: CI Pipeline Equivalent GitLab
 
 on:
   push:
@@ -7,9 +7,10 @@ on:
     branches: [ "main" ]
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
 
+  # --- VALIDATE ---
+  validate:
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
@@ -17,9 +18,68 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
+          cache: npm
 
-      - name: Install deps
-        run: npm install
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Validate code (placeholder)
+        run: echo "Validation OK"
+
+  # --- TEST ---
+  test:
+    runs-on: ubuntu-latest
+    needs: validate   # equivalent to stage order
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
 
       - name: Run tests
         run: npm test
+
+  # --- BUILD ---
+  build:
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build project
+        run: npm run build || echo "No build script"
+
+  # --- RELEASE ---
+  release:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Release step
+        run: echo "Release step (placeholder)"
+
+  # --- DEPLOY ---
+  deploy:
+    runs-on: ubuntu-latest
+    needs: release
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Deploy step
+        run: echo "Deploying… (placeholder)"

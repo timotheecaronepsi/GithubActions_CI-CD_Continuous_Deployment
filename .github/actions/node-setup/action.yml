@@ -1,5 +1,5 @@
-name: "Node Setup (checkout + setup-node + npm ci)"
-description: "Common Node setup: checkout, setup Node, install dependencies"
+name: "Node Setup (setup-node + npm ci)"
+description: "Common Node setup: setup Node, install dependencies"
 inputs:
   node-version:
     description: "Node.js version"
@@ -9,18 +9,9 @@ inputs:
     description: "Package manager to cache"
     required: false
     default: "npm"
-  full_checkout:
-    description: "Use fetch-depth: 0 (true/false)"
-    required: false
-    default: "false"
 runs:
   using: "composite"
   steps:
-    - name: Checkout
-      uses: actions/checkout@v4
-      with:
-        fetch-depth: ${{ inputs.full_checkout == 'true' && 0 || 1 }}
-
     - name: Setup Node
       uses: actions/setup-node@v4
       with:

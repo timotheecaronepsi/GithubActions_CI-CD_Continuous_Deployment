@@ -5,6 +5,7 @@ on:
     branches: [ "main" ]
   pull_request:
     branches: [ "main" ]
+  workflow_dispatch:
 
 jobs:
 
@@ -64,15 +65,29 @@ jobs:
       - name: Build project
         run: npm run build || echo "No build script"
 
-  # --- RELEASE ---
+# --- RELEASE ---
   release:
     runs-on: ubuntu-latest
     needs: build
+    if: github.ref == 'refs/heads/main' 
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0      
 
-      - name: Release step
-        run: echo "Release step (placeholder)"
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run Release-it
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
+        run: npm run release
 
   # --- DEPLOY ---
   deploy:

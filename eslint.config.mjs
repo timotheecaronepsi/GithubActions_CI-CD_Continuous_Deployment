@@ -1,18 +1,35 @@
 import globals from "globals";
 import pluginJs from "@eslint/js";
 
+
 export default [
+  { ignores: ["node_modules/", "dist/", "out/", "**/*.test.js"] },
+
+  pluginJs.configs.recommended,
+
   {
-    ignores: ["**/*.test.js"],      
-    files: ["**/*.js"],         
-    languageOptions: { 
-      sourceType: "commonjs"     
+    files: ["src/index.js", "src/**/*.server.js", "server/**/*.js", "scripts/**/*.js"],
+    languageOptions: {
+      ecmaVersion: "latest",
+      sourceType: "commonjs",
+      globals: {
+        ...globals.node,
+      },
+    },
+    rules: {
     },
   },
 
   {
-    languageOptions: { 
-      globals: globals.node    
+    files: ["src/main.js", "src/**/*.client.js", "web/**/*.{js,jsx,ts,tsx}"],
+    languageOptions: {
+      ecmaVersion: "latest",
+      sourceType: "module",
+      globals: {
+        ...globals.browser,
+      },
+    },
+    rules: {
     },
   },
 

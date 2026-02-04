@@ -1,3 +1,4 @@
+/* eslint-disable no-undef */
 const PREFIX = 'secret-';
 
 function isSecret(secret) {

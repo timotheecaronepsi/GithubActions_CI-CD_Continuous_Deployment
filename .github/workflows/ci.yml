@@ -23,7 +23,7 @@ permissions:
 jobs:
 
   # --- VALIDATE ---
-  validate:
+  validate: 
     runs-on: ubuntu-latest
 
     if: >

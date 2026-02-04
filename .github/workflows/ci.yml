@@ -86,8 +86,10 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
+
+      - name: Deubg release verbose
         run: npm run release -- --verbose
-        
+
       - name: Set Git identity
         run: |
           git config --global user.email "timothee.caron@ecoles-epsi.net"

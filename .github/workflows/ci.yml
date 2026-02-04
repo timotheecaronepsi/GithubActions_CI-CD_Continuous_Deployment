@@ -24,12 +24,12 @@ jobs:
         run: npm ci
 
       - name: Lint code with ESLint
-        run: npx eslint .
+        run: npm run lint   
 
   # --- TEST ---
   test:
     runs-on: ubuntu-latest
-    needs: validate   # equivalent to stage order
+    needs: validate
     steps:
       - uses: actions/checkout@v4
 

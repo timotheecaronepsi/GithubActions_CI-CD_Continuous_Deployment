@@ -142,22 +142,41 @@ jobs:
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/ci-cd:latest
 
   # --- SECURITY SCANS ---
-  gitleaks:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: gitleaks/gitleaks-action@v2
 
-  dependency-review:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: github/dependency-review-action@v4
+# --- SECURITY SCANS ---
+gitleaks:
+  runs-on: ubuntu-latest
+  steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
 
-  codeql:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: github/codeql-action/init@v3
-        with:
-          languages: javascript
-      - uses: github/codeql-action/analyze@v3
+    - name: Run Gitleaks
+      uses: gitleaks/gitleaks-action@v2
+      with:
+        args: detect --no-git --redact --verbose
+
+dependency-review:
+  runs-on: ubuntu-latest
+  steps:
+    - uses: actions/checkout@v4
+    - uses: actions/dependency-review-action@v4
+
+codeql:
+  runs-on: ubuntu-latest
+  permissions:
+    contents: read
+    security-events: write
+  steps:
+    - uses: actions/checkout@v4
+
+    - uses: github/codeql-action/init@v3
+      with:
+        languages: javascript
+
+    - name: Build
+      run: |
+        npm install
+        npm run build || echo "no build"
+
+    - uses: github/codeql-action/analyze@v3

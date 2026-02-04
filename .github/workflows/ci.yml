@@ -1,11 +1,22 @@
 name: CI Pipeline Equivalent GitLab
 
+
 on:
   push:
     branches: ["main"]
   pull_request:
     branches: ["main"]
   workflow_dispatch:
+    inputs:
+      env_target:
+        description: "Cible d'environnement (dev/canary/prod)"
+        required: true
+        default: "dev"
+        type: choice
+        options:
+          - dev
+          - canary
+          - prod
 
 permissions:
   contents: write
@@ -163,3 +174,13 @@ jobs:
           npm run build || echo "no build"
 
       - uses: github/codeql-action/analyze@v3
+
+# --- ONLY-CANARY ---
+  only-canary:
+      runs-on: ubuntu-latest
+      if: |
+        (github.event_name == 'workflow_dispatch' && inputs.env_target == 'canary')
+        || (github.event_name != 'workflow_dispatch' && vars.ENV_TARGET == 'canary')
+      steps:
+        - name: Run Only Canary
+          run: echo "Hello Only Canary !"
